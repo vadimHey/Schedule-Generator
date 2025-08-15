@@ -1,0 +1,2 @@
+# ScheduleGenerator
+Razor Pages project
