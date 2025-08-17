@@ -2,17 +2,20 @@
 @model ScheduleModel
 @{
     ViewData["Title"] = "Генератор расписания";
+    var Schedule = Model.Schedules;
 }
 
 <h2>Генератор расписания</h2>
 
 <form method="post">
-    <label asp-for="Items">Введите предметы:</label><br />
-    <input asp-for="Items"/><br />
-    <button type="submit">Сгенерировать</button><br /><br />
+    <div class="form-group" onsubmit="clearInput">
+        <label asp-for="NewItem">Введите предметы:</label><br />
+        <input asp-for="NewItem"/><br />
+        <button type="submit">Сгенерировать</button><br /><br />
+    </div>
 </form>
 
-@if (Model.Schedules.Any())
+@if (Schedule.Any())
 {
     <h3>Ваше расписание:</h3>
     <table border="1" cellpadding="5">
@@ -23,11 +26,11 @@
             </tr>
         </thead>
         <tbody>
-            @for (int i = 0; i < Model.Schedules.Count; i++)
+            @for (int i = 0; i < Schedule.Count; i++)
             {
                 <tr>
-                    <td>@(i + 1)</td>
-                    <td>@Model.Schedules[i]</td>
+                    <td>@(i + 1).</td>
+                    <td>@Schedule[i]</td>
                 </tr>
             }
         </tbody>
