@@ -2,7 +2,7 @@
 @model ScheduleModel
 @{
     ViewData["Title"] = "Генератор расписания";
-    var Schedule = Model.Schedules;
+    var Schedule = Model.Schedule;
 }
 
 <h2>Генератор расписания</h2>
@@ -32,8 +32,18 @@
                 <tr>
                     <td>@(i + 1).</td>
                     <td>@Schedule[i]</td>
+                    <td>
+                        <form method="post" asp-page-handler="DeleteItem">
+                            <input type="hidden" name="index" value="@i"/>
+                            <button type="submit">❌</button>
+                        </form>
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
+
+    <form method="post" asp-page-handler="Clear">
+        <button type="submit">Удалить всё</button>
+    </form>
 }
