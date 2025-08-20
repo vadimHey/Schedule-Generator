@@ -10,7 +10,7 @@
 <form method="post">
     <div class="form-group">
         <label asp-for="NewItem">Введите событие:</label><br />
-        <input asp-for="NewItem" id="newItemInput" /><br />
+        <input asp-for="NewItem" autofocus autocomplete="off"/><br />
         <span asp-validation-for="NewItem" class="text-danger"></span><br />
         <button type="submit">Добавить</button><br /><br />
     </div>

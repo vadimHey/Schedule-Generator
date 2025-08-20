@@ -9,47 +9,48 @@ namespace ScheduleGenerator.Pages
     {
         [BindProperty]
         [Required(ErrorMessage = "Введите название события")]
-        [RegularExpression(@"^[A-Za-zА-Яа-я].*", ErrorMessage = "Событие должно начинаться с буквы")]
+        [RegularExpression(@"^\s*[A-Za-zА-Яа-я0-9].*", ErrorMessage = "Событие должно начинаться с буквы или цифры")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Название должно быть от 3 до 50 символов")]
         public string NewItem { get; set; } = string.Empty;
-
         public List<string> Schedules { get; set; } = new List<string>();
 
         public void OnGet()
         {
-            LoadSchedules();
+            Schedules = LoadSchedules();
         }
 
         public IActionResult OnPost()
         {
-            LoadSchedules();
+            NewItem = NewItem.Trim();  
 
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
+                Schedules = LoadSchedules();
                 return Page();
             }
 
-            Schedules.Add(NewItem.Trim());
-            SaveSchedules();
+            Schedules = LoadSchedules();
+            Schedules.Add(NewItem);
+            SaveSchedules(Schedules);
 
             ModelState.Clear();
             NewItem = string.Empty;
 
-            return Page();
+            return RedirectToPage();
         }
 
-        private void LoadSchedules()
+        private List<string> LoadSchedules()
         {
             var data = HttpContext.Session.GetString("Schedule");
-            if(!string.IsNullOrEmpty(data))
-            {
-                Schedules = JsonSerializer.Deserialize<List<string>>(data) ?? new List<string>(); 
-            }
+
+            return string.IsNullOrEmpty(data) 
+                ? new List<string>() 
+                : System.Text.Json.JsonSerializer.Deserialize<List<string>>(data) ?? new List<string>();
         }
 
-        private void SaveSchedules()
+        private void SaveSchedules(List<string> schedule)
         {
-            var data = JsonSerializer.Serialize(Schedules);
+            var data = System.Text.Json.JsonSerializer.Serialize(schedule);
             HttpContext.Session.SetString("Schedule", data);
         }
     }
