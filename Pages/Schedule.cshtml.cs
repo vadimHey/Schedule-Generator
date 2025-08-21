@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using ScheduleGenerator.Data;
+using ScheduleGenerator.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 
@@ -7,16 +9,23 @@ namespace ScheduleGenerator.Pages
 {
     public class ScheduleModel : PageModel
     {
+        private readonly AppDbContext _context;
+
+        public ScheduleModel(AppDbContext context)
+        {
+            _context = context;
+        }
+
         [BindProperty]
         [Required(ErrorMessage = "Введите название события")]
         [RegularExpression(@"^\s*[A-Za-zА-Яа-я0-9].*", ErrorMessage = "Событие должно начинаться с буквы или цифры")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Название должно быть от 3 до 50 символов")]
         public string NewItem { get; set; } = string.Empty;
-        public List<string> Schedule { get; set; } = new List<string>();
+        public List<ScheduleItem> Schedule { get; set; } = new();
 
         public void OnGet()
         {
-            Schedule = LoadSchedule();
+            Schedule = _context.ScheduleItems.ToList();
         }
 
         public IActionResult OnPost()
@@ -25,13 +34,13 @@ namespace ScheduleGenerator.Pages
 
             if (!ModelState.IsValid)
             {
-                Schedule = LoadSchedule();
+                Schedule = _context.ScheduleItems.ToList();
                 return Page();
             }
 
-            Schedule = LoadSchedule();
-            Schedule.Add(NewItem);
-            SaveSchedule(Schedule);
+            var item = new ScheduleItem { Title = NewItem };
+            _context.ScheduleItems.Add(item);
+            _context.SaveChanges();
 
             ModelState.Clear();
             NewItem = string.Empty;
@@ -39,22 +48,25 @@ namespace ScheduleGenerator.Pages
             return RedirectToPage();
         }
 
-        public IActionResult OnPostDeleteItem(int index)
+        public IActionResult OnPostDeleteItem(int id)
         {
-            Schedule = LoadSchedule();
-            if (index >= 0 && index < Schedule.Count)
+            var item = _context.ScheduleItems.FirstOrDefault(x => x.Id == id);
+            if (item == null)
             {
-                Schedule.RemoveAt(index);
-                SaveSchedule(Schedule);
+                return NotFound();
             }
+
+            _context.ScheduleItems.Remove(item);
+            _context.SaveChanges();
 
             return RedirectToPage();
         }
 
         public IActionResult OnPostClear()
         {
-            Schedule.Clear();
-            HttpContext.Session.Remove("Schedule");
+            _context.ScheduleItems.RemoveRange(_context.ScheduleItems);
+            _context.SaveChanges();
+
             return RedirectToPage();
         }
 

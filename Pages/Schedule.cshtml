@@ -2,21 +2,19 @@
 @model ScheduleModel
 @{
     ViewData["Title"] = "Генератор расписания";
-    var Schedule = Model.Schedule;
+    var index = 1;
 }
 
 <h2>Генератор расписания</h2>
 
 <form method="post">
-    <div class="form-group">
-        <label asp-for="NewItem">Введите событие:</label><br />
-        <input asp-for="NewItem" autofocus autocomplete="off"/><br />
-        <span asp-validation-for="NewItem" class="text-danger"></span><br />
-        <button type="submit">Добавить</button><br /><br />
-    </div>
+    <label asp-for="NewItem">Введите событие:</label><br />
+    <input asp-for="NewItem" autofocus autocomplete="off" /><br />
+    <span asp-validation-for="NewItem" class="text-danger"></span><br />
+    <button type="submit">Добавить</button><br /><br />
 </form>
 
-@if (Schedule.Any())
+@if (Model.Schedule.Any())
 {
     <h3>Ваше расписание:</h3>
     <table border="1" cellpadding="5">
@@ -27,14 +25,14 @@
             </tr>
         </thead>
         <tbody>
-            @for (int i = 0; i < Schedule.Count; i++)
+            @foreach (var schedule in Model.Schedule)
             {
                 <tr>
-                    <td>@(i + 1).</td>
-                    <td>@Schedule[i]</td>
+                    <td>@(index++).</td>
+                    <td>@schedule.Title</td>
                     <td>
                         <form method="post" asp-page-handler="DeleteItem">
-                            <input type="hidden" name="index" value="@i"/>
+                            <input type="hidden" name="id" value="@schedule.Id"/>
                             <button type="submit">❌</button>
                         </form>
                     </td>
@@ -44,6 +42,6 @@
     </table>
 
     <form method="post" asp-page-handler="Clear">
-        <button type="submit">Удалить всё</button>
+        <button type="submit">Очистить расписание</button>
     </form>
 }
