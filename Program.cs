@@ -1,4 +1,10 @@
+using Microsoft.EntityFrameworkCore;
+using ScheduleGenerator.Data;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddRazorPages();
 builder.Services.AddSession();
@@ -15,7 +21,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseSession();
 
 app.MapRazorPages();
