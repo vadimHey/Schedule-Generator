@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using ScheduleGenerator.Data;
 using ScheduleGenerator.Models;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 
 namespace ScheduleGenerator.Pages
 {
@@ -16,73 +15,99 @@ namespace ScheduleGenerator.Pages
             _context = context;
         }
 
+        [BindProperty(SupportsGet = true)]
+        [DataType(DataType.Date)]
+        public DateOnly SelectedDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+
         [BindProperty]
         [Required(ErrorMessage = "Введите название события")]
         [RegularExpression(@"^\s*[A-Za-zА-Яа-я0-9].*", ErrorMessage = "Событие должно начинаться с буквы или цифры")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Название должно быть от 3 до 50 символов")]
         public string NewItem { get; set; } = string.Empty;
+
+        [BindProperty]
+        [DataType(DataType.Time)]
+        public TimeOnly StartTime { get; set; }
+
+        [BindProperty]
+        [DataType(DataType.Time)]
+        public TimeOnly EndTime { get; set; }
+
         public List<ScheduleItem> Schedule { get; set; } = new();
 
         public void OnGet()
         {
-            Schedule = _context.ScheduleItems.ToList();
+            LoadDay();
         }
 
         public IActionResult OnPost()
         {
-            NewItem = NewItem?.Trim() ?? string.Empty;  
+            NewItem = NewItem?.Trim() ?? string.Empty;
+
+            if (StartTime == default)
+                ModelState.AddModelError(nameof(StartTime), "Введите время начала события");
+
+            if (EndTime <= StartTime)
+                ModelState.AddModelError(nameof(EndTime), "Конец события должен быть позже начала");
+
+            var overlaps = _context.ScheduleItems.Any(x => 
+                x.Date == SelectedDate && 
+                x.StartTime < EndTime &&
+                x.EndTime > StartTime);
+
+            if (overlaps)
+                ModelState.AddModelError(nameof(StartTime), "События пересекаются");
 
             if (!ModelState.IsValid)
             {
-                Schedule = _context.ScheduleItems.ToList();
+                LoadDay();
                 return Page();
             }
 
-            var item = new ScheduleItem { Title = NewItem };
-            _context.ScheduleItems.Add(item);
+            _context.ScheduleItems.Add(new ScheduleItem
+            {
+                Title = NewItem,
+                Date = SelectedDate,
+                StartTime = StartTime,
+                EndTime = EndTime,
+            });
             _context.SaveChanges();
 
             ModelState.Clear();
             NewItem = string.Empty;
 
-            return RedirectToPage();
+            return RedirectToPage(new { SelectedDate = SelectedDate.ToString("yyyy-MM-dd") });
         }
 
         public IActionResult OnPostDeleteItem(int id)
         {
             var item = _context.ScheduleItems.FirstOrDefault(x => x.Id == id);
-            if (item == null)
+            if (item != null)
             {
-                return NotFound();
+                var date = item.Date;
+                _context.ScheduleItems.Remove(item);
+                _context.SaveChanges();
+                return RedirectToPage(new { SelectedDate = date.ToString("yyyy-MM-dd") });
             }
 
-            _context.ScheduleItems.Remove(item);
-            _context.SaveChanges();
-
-            return RedirectToPage();
+            return RedirectToPage(new { SelectedDate = SelectedDate.ToString("yyyy-MM-dd") });
         }
 
         public IActionResult OnPostClear()
         {
-            _context.ScheduleItems.RemoveRange(_context.ScheduleItems);
+            var items = _context.ScheduleItems.Where(x => x.Date == SelectedDate);
+            _context.ScheduleItems.RemoveRange(items);
             _context.SaveChanges();
 
-            return RedirectToPage();
+            return RedirectToPage(new { SelectedDate = SelectedDate.ToString("yyyy-MM-dd") });
         }
 
-        private List<string> LoadSchedule()
+        private void LoadDay()
         {
-            var data = HttpContext.Session.GetString("Schedule");
-
-            return string.IsNullOrEmpty(data) 
-                ? new List<string>() 
-                : System.Text.Json.JsonSerializer.Deserialize<List<string>>(data) ?? new List<string>();
-        }
-
-        private void SaveSchedule(List<string> schedule)
-        {
-            var data = System.Text.Json.JsonSerializer.Serialize(schedule);
-            HttpContext.Session.SetString("Schedule", data);
+            Schedule = _context.ScheduleItems
+                .Where(x => x.Date == SelectedDate)
+                .OrderBy(x => x.StartTime)
+                .ToList();
         }
     }
 }
