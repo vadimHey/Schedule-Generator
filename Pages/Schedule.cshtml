@@ -2,17 +2,38 @@
 @model ScheduleModel
 @{
     ViewData["Title"] = "Генератор расписания";
-    var index = 1;
+    var i = 1;
 }
 
-<h2>Генератор расписания</h2>
+<h2>Расписание на @Model.SelectedDate.ToString("dd.MM.yyyy")</h2>
 
-<form method="post">
-    <label asp-for="NewItem">Введите событие:</label><br />
-    <input asp-for="NewItem" autofocus autocomplete="off" /><br />
-    <span asp-validation-for="NewItem" class="text-danger"></span><br />
-    <button type="submit">Добавить</button><br /><br />
+<form method="get" class="mb-3">
+    <a asp-page="./Schedule" asp-route-SelectedDate="@(Model.SelectedDate.AddDays(-1).ToString("yyyy-MM-dd"))">← Пред. день</a>
+    <a asp-page="./Schedule" asp-route-SelectedDate="@(Model.SelectedDate.AddDays(1).ToString("yyyy-MM-dd"))">След. день →</a><br />
+    <input asp-for="SelectedDate" type="date"/>
+    <button type="submit">Показать</button>
 </form>
+
+<form method="post" class="mb-4">
+    <div>
+        <input asp-for="NewItem" placeholder="Событие" autocomplete="off" />
+        <span asp-validation-for="NewItem" class="text-danger"></span>
+    </div>
+    <div>
+        <label>Начало:</label>
+        <input asp-for="StartTime" type="time" />
+        <span asp-validation-for="StartTime" class="text-danger"></span>
+    </div>
+    <div>
+        <label>Окончание:</label>
+        <input asp-for="EndTime" type="time" />
+        <span asp-validation-for="EndTime" class="text-danger"></span>
+    </div>
+    <input type="hidden" asp-for="SelectedDate" />
+    <button type="submit">Добавить</button>
+</form>
+
+<partial name="_ValidationScriptsPartial" />
 
 @if (Model.Schedule.Any())
 {
@@ -22,14 +43,19 @@
             <tr>
                 <th>#</th>
                 <th>Событие</th>
+                <th>Начало</th>
+                <th>Окончание</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             @foreach (var schedule in Model.Schedule)
             {
                 <tr>
-                    <td>@(index++).</td>
+                    <td>@(i++).</td>
                     <td>@schedule.Title</td>
+                    <td>@schedule.StartTime</td>
+                    <td>@schedule.EndTime</td>
                     <td>
                         <form method="post" asp-page-handler="DeleteItem">
                             <input type="hidden" name="id" value="@schedule.Id"/>
@@ -41,7 +67,7 @@
         </tbody>
     </table>
 
-    <form method="post" asp-page-handler="Clear">
-        <button type="submit">Очистить расписание</button>
+    <form method="post" asp-page-handler="Clear" class="mt-2">
+        <button type="submit">Очистить день</button>
     </form>
 }
