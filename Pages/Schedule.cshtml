@@ -7,7 +7,7 @@
 
 <div class="row">
 	<div class="col-6">
-		<div class="card">
+		<div class="card mb-2">
 			<div class="card-header">
 				<h3>Добавить событие</h3>
 			</div>
@@ -32,12 +32,12 @@
 						<span asp-validation-for="Item.Title" class="text-danger"></span>
 					</div>
 					<div class="mb-2">
-						<label class="form-label">Начало:</label>
+						<label class="form-label">Начало</label>
 						<input asp-for="Item.StartTime" type="time" class="form-control" />
 						<span asp-validation-for="Item.StartTime" class="text-danger"></span>
 					</div>
 					<div class="mb-2">
-						<label class="form-label">Окончание:</label>
+						<label class="form-label">Окончание</label>
 						<input asp-for="Item.EndTime" type="time" class="form-control" />
 						<span asp-validation-for="Item.EndTime" class="text-danger"></span>
 					</div>
@@ -50,8 +50,8 @@
 		</div>
 	</div>
 
-    <div class="col-md-6">
-        <div class="card mb-3">
+    <div class="col-6">
+        <div class="card mb-2">
             <div class="card-header">
                 <h3>Ваше расписание на @Model.SelectedDate.ToString("dd.MM.yyyy")</h3>
             </div>
@@ -77,10 +77,64 @@
                                     <td>@schedule.StartTime</td>
                                     <td>@schedule.EndTime</td>
                                     <td>
+                                        <button type="button"
+                                                class="btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editModal"
+                                                data-id="@schedule.Id"
+                                                data-title="@schedule.Title"
+                                                data-start="@schedule.StartTime.ToString("HH:mm")"
+                                                data-end="@schedule.EndTime.ToString("HH:mm")">
+                                            ⋮
+                                        </button>
+
                                         <form method="post" asp-page-handler="DeleteItem" style="display:inline;">
                                             <input type="hidden" name="id" value="@schedule.Id" />
-                                            <button type="submit">❌</button>
+                                            <button type="submit" class="btn">❌</button>
                                         </form>
+
+                                        <div class="modal fade" id="editModal" tabindex="-1"
+                                             aria-hidden="true"
+                                             data-show="@((ViewData["ShowEditModal"] ?? false).ToString().ToLower())">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Редактировать событие</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                                                    </div>
+
+                                                    <form method="post" asp-page-handler="Edit">
+                                                        <div class="modal-body">
+                                                            <input type="hidden" asp-for="EditItem.Id" id="edit-id" />
+                                                            <input type="hidden" asp-for="SelectedDate" />
+
+                                                            <div class="mb-2">
+                                                                <label class="form-label">Событие</label>
+                                                                <input asp-for="EditItem.Title" id="edit-title" class="form-control" />
+                                                                <span asp-validation-for="EditItem.Title" class="text-danger"></span>
+                                                            </div>
+
+                                                            <div class="mb-2">
+                                                                <label class="form-label">Начало</label>
+                                                                <input asp-for="EditItem.StartTime" id="edit-start" type="time" class="form-control" />
+                                                                <span asp-validation-for="EditItem.StartTime" class="text-danger"></span>
+                                                            </div>
+
+                                                            <div class="mb-2">
+                                                                <label class="form-label">Окончание</label>
+                                                                <input asp-for="EditItem.EndTime" id="edit-end" type="time" class="form-control" />
+                                                                <span asp-validation-for="EditItem.EndTime" class="text-danger"></span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             }

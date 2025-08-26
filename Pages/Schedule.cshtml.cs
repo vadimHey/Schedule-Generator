@@ -22,6 +22,9 @@ namespace ScheduleGenerator.Pages
         [BindProperty]
         public ScheduleItem Item { get; set; } = new();
 
+        [BindProperty]
+        public ScheduleItem EditItem { get; set; } = new();
+
         public List<ScheduleItem> Schedule { get; set; } = new();
 
         public void OnGet()
@@ -33,7 +36,7 @@ namespace ScheduleGenerator.Pages
         {
             Item.Date = SelectedDate;
 
-            if (!ValidateEvent(Item))
+            if (!ValidateEvent(Item, null, "Item"))
             {
                 LoadDay();
                 return Page();
@@ -44,6 +47,27 @@ namespace ScheduleGenerator.Pages
 
             ModelState.Clear();
             Item.Title = string.Empty;
+
+            return RedirectToPage(new { SelectedDate = SelectedDate.ToString("yyyy-MM-dd") });
+        }
+
+        public IActionResult OnPostEdit()
+        {
+            var newItem = _context.ScheduleItems.FirstOrDefault(x => x.Id == EditItem.Id);
+            if (newItem == null)
+                return RedirectToPage(new { SelectedDate = SelectedDate.ToString("yyyy-MM-dd") });
+
+            if (!ValidateEvent(EditItem, EditItem.Id, "EditItem"))
+            {
+                LoadDay();
+                ViewData["ShowEditModal"] = true;
+                return Page();
+            }
+
+            newItem.Title = EditItem.Title;
+            newItem.StartTime = EditItem.StartTime;
+            newItem.EndTime = EditItem.EndTime;
+            _context.SaveChanges();
 
             return RedirectToPage(new { SelectedDate = SelectedDate.ToString("yyyy-MM-dd") });
         }
@@ -82,11 +106,11 @@ namespace ScheduleGenerator.Pages
         /// <summary>
         /// Общая функция валидации событий
         /// </summary>
-        private bool ValidateEvent(ScheduleItem item, int? id = null)
+        private bool ValidateEvent(ScheduleItem item, int? id, string prefix) 
         {
             if (string.IsNullOrWhiteSpace(item.Title))
             {
-                ModelState.AddModelError("Item.Title", "Введите название события");
+                ModelState.AddModelError($"{prefix}.Title", "Введите название события");
                 return false;
             }
 
@@ -94,25 +118,25 @@ namespace ScheduleGenerator.Pages
 
             if (!System.Text.RegularExpressions.Regex.IsMatch(item.Title, @"^[A-Za-zА-Яа-я0-9].*"))
             {
-                ModelState.AddModelError("Item.Title", "Событие должно начинаться с буквы или цифры");
+                ModelState.AddModelError($"{prefix}.Title", "Событие должно начинаться с буквы или цифры");
                 return false;
             }
 
             if (item.Title.Length < 3 || item.Title.Length > 50)
             {
-                ModelState.AddModelError("Item.Title", "Название должно быть от 3 до 50 символов");
+                ModelState.AddModelError($"{prefix}.Title", "Название должно быть от 3 до 50 символов");
                 return false;
             }
 
             if (item.StartTime == default)
             {
-                ModelState.AddModelError("Item.StartTime", "Введите время начала события");
+                ModelState.AddModelError($"{prefix}.StartTime", "Введите время начала события");
                 return false;
             }
 
             if (item.EndTime <= item.StartTime)
             {
-                ModelState.AddModelError("Item.EndTime", "Конец события должен быть позже начала");
+                ModelState.AddModelError($"{prefix}.EndTime", "Конец события должен быть позже начала");
                 return false;
             }
 
@@ -124,7 +148,7 @@ namespace ScheduleGenerator.Pages
 
             if (overlaps)
             {
-                ModelState.AddModelError("Item.StartTime", "События пересекаются");
+                ModelState.AddModelError($"{prefix}.StartTime", "События пересекаются");
                 return false;
             }
 
