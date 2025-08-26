@@ -20,18 +20,7 @@ namespace ScheduleGenerator.Pages
         public DateOnly SelectedDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
         [BindProperty]
-        [Required(ErrorMessage = "Введите название события")]
-        [RegularExpression(@"^\s*[A-Za-zА-Яа-я0-9].*", ErrorMessage = "Событие должно начинаться с буквы или цифры")]
-        [StringLength(50, MinimumLength = 3, ErrorMessage = "Название должно быть от 3 до 50 символов")]
-        public string NewItem { get; set; } = string.Empty;
-
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly StartTime { get; set; }
-
-        [BindProperty]
-        [DataType(DataType.Time)]
-        public TimeOnly EndTime { get; set; }
+        public ScheduleItem Item { get; set; } = new();
 
         public List<ScheduleItem> Schedule { get; set; } = new();
 
@@ -42,39 +31,19 @@ namespace ScheduleGenerator.Pages
 
         public IActionResult OnPost()
         {
-            NewItem = NewItem?.Trim() ?? string.Empty;
+            Item.Date = SelectedDate;
 
-            if (StartTime == default)
-                ModelState.AddModelError(nameof(StartTime), "Введите время начала события");
-
-            if (EndTime <= StartTime)
-                ModelState.AddModelError(nameof(EndTime), "Конец события должен быть позже начала");
-
-            var overlaps = _context.ScheduleItems.Any(x => 
-                x.Date == SelectedDate && 
-                x.StartTime < EndTime &&
-                x.EndTime > StartTime);
-
-            if (overlaps)
-                ModelState.AddModelError(nameof(StartTime), "События пересекаются");
-
-            if (!ModelState.IsValid)
+            if (!ValidateEvent(Item))
             {
                 LoadDay();
                 return Page();
             }
 
-            _context.ScheduleItems.Add(new ScheduleItem
-            {
-                Title = NewItem,
-                Date = SelectedDate,
-                StartTime = StartTime,
-                EndTime = EndTime,
-            });
+            _context.ScheduleItems.Add(Item);
             _context.SaveChanges();
 
             ModelState.Clear();
-            NewItem = string.Empty;
+            Item.Title = string.Empty;
 
             return RedirectToPage(new { SelectedDate = SelectedDate.ToString("yyyy-MM-dd") });
         }
@@ -108,6 +77,58 @@ namespace ScheduleGenerator.Pages
                 .Where(x => x.Date == SelectedDate)
                 .OrderBy(x => x.StartTime)
                 .ToList();
+        }
+
+        /// <summary>
+        /// Общая функция валидации событий
+        /// </summary>
+        private bool ValidateEvent(ScheduleItem item, int? id = null)
+        {
+            if (string.IsNullOrWhiteSpace(item.Title))
+            {
+                ModelState.AddModelError("Item.Title", "Введите название события");
+                return false;
+            }
+
+            item.Title = item.Title.Trim();
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(item.Title, @"^[A-Za-zА-Яа-я0-9].*"))
+            {
+                ModelState.AddModelError("Item.Title", "Событие должно начинаться с буквы или цифры");
+                return false;
+            }
+
+            if (item.Title.Length < 3 || item.Title.Length > 50)
+            {
+                ModelState.AddModelError("Item.Title", "Название должно быть от 3 до 50 символов");
+                return false;
+            }
+
+            if (item.StartTime == default)
+            {
+                ModelState.AddModelError("Item.StartTime", "Введите время начала события");
+                return false;
+            }
+
+            if (item.EndTime <= item.StartTime)
+            {
+                ModelState.AddModelError("Item.EndTime", "Конец события должен быть позже начала");
+                return false;
+            }
+
+            var overlaps = _context.ScheduleItems.Any(x =>
+                x.Id != id &&
+                x.Date == item.Date &&
+                x.StartTime < item.EndTime &&
+                x.EndTime > item.StartTime);
+
+            if (overlaps)
+            {
+                ModelState.AddModelError("Item.StartTime", "События пересекаются");
+                return false;
+            }
+
+            return true;
         }
     }
 }
