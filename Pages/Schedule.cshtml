@@ -32,7 +32,7 @@
 						<span asp-validation-for="Item.Title" class="text-danger"></span>
 					</div>
 					<div class="mb-2">
-						<label class="form-label">Начало</label>
+                        <label class="form-label">Начало</label>
 						<input asp-for="Item.StartTime" type="time" class="form-control" />
 						<span asp-validation-for="Item.StartTime" class="text-danger"></span>
 					</div>
@@ -56,7 +56,7 @@
                 <h3>Ваше расписание на @Model.SelectedDate.ToString("dd.MM.yyyy")</h3>
             </div>
             <div class="card-body">
-                @if (Model.Schedule.Any())
+                @if (Model.DayItems.Any())
                 {
                     <table class="table table-bordered">
                         <thead>
@@ -69,7 +69,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var schedule in Model.Schedule)
+                            @foreach (var schedule in Model.DayItems)
                             {
                                 <tr>
                                     <td>@(i++)</td>
@@ -99,7 +99,7 @@
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title">Редактировать событие</h5>
+                                                        <h3 class="modal-title">Редактировать событие</h3>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                                                     </div>
 
