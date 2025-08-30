@@ -57,7 +57,7 @@ namespace ScheduleGenerator.Pages
             if (!_scheduleService.ValidateEvent(ModelState, EditItem, EditItem.Id, "EditItem"))
             {
                 DayItems = _scheduleService.GetEventsByDate(SelectedDate);
-                ViewData["ShowEditModal"] = true;
+                ViewData["ShowEditModalId"] = EditItem.Id;
                 return Page();
             }
 
@@ -69,7 +69,9 @@ namespace ScheduleGenerator.Pages
 
         public IActionResult OnPostDeleteItem(int id)
         {
-            _scheduleService.DeleteEvent(id);
+            if (!_scheduleService.DeleteEvent(id))
+                return NotFound();
+
             return RedirectToPage(new { SelectedDate = SelectedDate.ToString("yyyy-MM-dd") });
         }
     }

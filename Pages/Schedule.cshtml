@@ -93,14 +93,13 @@
                                             <button type="submit" class="btn">❌</button>
                                         </form>
 
-                                        <div class="modal fade" id="editModal" tabindex="-1"
-                                             aria-hidden="true"
-                                             data-show="@((ViewData["ShowEditModal"] ?? false).ToString().ToLower())">
+                                        <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true"
+                                             data-show-id="@ViewData["ShowEditModalId"]"
+                                             data-bs-backdrop="static" data-bs-keyboard="false">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
                                                         <h3 class="modal-title">Редактировать событие</h3>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                                                     </div>
 
                                                     <form method="post" asp-page-handler="Edit">
@@ -128,7 +127,6 @@
                                                         </div>
 
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                                                             <button type="submit" class="btn btn-primary">Сохранить</button>
                                                         </div>
                                                     </form>

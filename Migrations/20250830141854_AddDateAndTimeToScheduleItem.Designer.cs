@@ -12,7 +12,7 @@ using ScheduleGenerator.Data;
 namespace ScheduleGenerator.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250823205427_AddDateAndTimeToScheduleItem")]
+    [Migration("20250830141854_AddDateAndTimeToScheduleItem")]
     partial class AddDateAndTimeToScheduleItem
     {
         /// <inheritdoc />
@@ -43,9 +43,7 @@ namespace ScheduleGenerator.Migrations
                         .HasColumnType("time without time zone");
 
                     b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

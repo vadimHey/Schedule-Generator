@@ -42,7 +42,7 @@ namespace ScheduleGenerator.Service
             if (newItem == null)
                 return false;
 
-            newItem.Date = editItem.Date;
+            newItem.Title = editItem.Title;
             newItem.StartTime = editItem.StartTime;
             newItem.EndTime = editItem.EndTime;
 

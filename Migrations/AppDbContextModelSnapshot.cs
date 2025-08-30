@@ -40,9 +40,7 @@ namespace ScheduleGenerator.Migrations
                         .HasColumnType("time without time zone");
 
                     b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
