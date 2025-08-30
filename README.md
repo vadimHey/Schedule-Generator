@@ -11,7 +11,9 @@
 
 1. Скачайте и установите PostgreSQL с официального сайта: https://www.postgresql.org/download/
 
-2. Настройте подключение к базе. В файле `appsettings.json` измените значение Password на свой пароль от сервера БД:
+2. Клонируйте проект в удобную папку по команде: git clone https://github.com/vadimHey/Schedule-Generator.git
+
+3. Настройте подключение к базе. В файле `appsettings.json` измените значение Password на свой пароль от сервера БД:
     
     ```json
    {
@@ -19,3 +21,5 @@
        "DefaultConnection": "Host=localhost;Port=5432;Database=ScheduleDb;Username=postgres;Password=YOUR_PASSWORD"
      }
    }
+
+4. Запустите проект.
